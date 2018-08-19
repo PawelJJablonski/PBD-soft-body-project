@@ -59,8 +59,8 @@ void USoftBodyComponent::CreateConstrains()
 			SBConstraintsStretch.Add(FSBConstraint(i+rows+1, i+rows+NumWidth, GetVertDistance(i+rows+1, i+rows+NumWidth)));
 			if(j == NumLength-2)SBConstraintsStretch.Add(FSBConstraint(i+rows+NumWidth, i+rows+NumWidth+1, GetVertDistance(i+rows+NumWidth, i+rows+NumWidth+1)));//koniec poziom
 			
-			SBConstraintsBend.Add(FSBConstraint(i+rows, i+rows+NumWidth+1, i+rows+NumWidth, i+rows+1, GetTriangleAngle(i+rows, i+rows+NumWidth+1, i+rows+NumWidth, i+rows+1)));
-			SBConstraintsBend.Add(FSBConstraint(i+rows+1, i+rows+NumWidth, i+rows, i+rows+NumWidth+1, GetTriangleAngle(i+rows+1, i+rows+NumWidth, i+rows, i+rows+NumWidth+1)));
+			SBConstraintsBend.Add(FSBConstraint(i + rows, i + rows + NumWidth + 1, i + rows + NumWidth, i + rows + 1, GetTriangleAngle(i + rows, i + rows + NumWidth + 1, i + rows + NumWidth, i + rows + 1)));
+			SBConstraintsBend.Add(FSBConstraint(i + rows + 1, i + rows + NumWidth, i + rows, i + rows + NumWidth + 1, GetTriangleAngle(i + rows + 1, i + rows + NumWidth, i + rows, i + rows + NumWidth + 1)));
 			if (i > 0) SBConstraintsBend.Add(FSBConstraint(i+rows, i+rows+NumWidth, i+rows-1, i+rows+NumWidth+1, GetTriangleAngle(i + rows, i + rows + NumWidth, i + rows - 1, i + rows + NumWidth + 1)));//pion
 			if (j > 0) SBConstraintsBend.Add(FSBConstraint(i+rows, i+rows+1, i+rows+NumWidth+1, i+rows-NumWidth, GetTriangleAngle(i + rows, i + rows + 1, i + rows + NumWidth + 1, i + rows - NumWidth)));//poziom
 		}

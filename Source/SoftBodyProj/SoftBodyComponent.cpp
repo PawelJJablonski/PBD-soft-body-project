@@ -76,8 +76,8 @@ void USoftBodyComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 
 	if (SBVertices.Num() > 3) // sprawdzenie, czy istnieje wystarczaj¹co wiele wierzcholkow
 	{
-	UpdateVertices(DeltaTime); // symulacja
-	CreateSBMesh(); // rendering
+		UpdateVertices(DeltaTime); // symulacja
+		CreateSBMesh(); // rendering
 	}
 }
 
@@ -148,7 +148,7 @@ void USoftBodyComponent::SolveConstraintBend()
 		FVector p2 = P2.Estimate - P1.Estimate;
 		FVector p3 = P3.Estimate - P1.Estimate;
 		FVector p4 = P4.Estimate - P1.Estimate;
-		float scale = p4.SizeSquared();
+		float scale = 10*p4.Size();
 
 		FVector n1 = cross(p2, p3) / cross(p2, p3).Size();
 		FVector n2 = cross(p2, p4) / cross(p2, p4).Size();
@@ -162,7 +162,7 @@ void USoftBodyComponent::SolveConstraintBend()
 		FVector q2 = (((cross(p3, n2) + cross(n1, p3)*d) / cross(p2, p3).Size()) - ((cross(p4, n1) + cross(n2, p4)*d) / cross(p2, p4).Size()));
 		FVector q1 = ((-1)*q2 - q3 - q4);
 
-		double s = FMath::Clamp (BendStiffness / ((P1.MassInverse*q1.SizeSquared())+(P2.MassInverse*q2.SizeSquared())+(P3.MassInverse*q3.SizeSquared())+(P4.MassInverse*q4.SizeSquared())*scale ), -1e3f, 1e3f);
+		double s = FMath::Clamp(BendStiffness / (((P1.MassInverse*q1.SizeSquared()) + (P2.MassInverse*q2.SizeSquared()) + (P3.MassInverse*q3.SizeSquared()) + (P4.MassInverse*q4.SizeSquared()))*scale), -1e12f, 1e12f);
 		
 		FVector deltaP1 = - s * P1.MassInverse * sqrt(1 - d*d) * C * q1;
 		FVector deltaP2 = - s * P2.MassInverse * sqrt(1 - d*d) * C * q2;

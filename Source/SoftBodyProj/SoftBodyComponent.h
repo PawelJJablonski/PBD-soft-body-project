@@ -105,8 +105,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 		float StretchStiffness = 0.9;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-		float BendStiffness = 0.25;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0.0", UIMin = "0.0", UIMax = "1.0"))
+		float BendStiffness = 0.5;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 		float Damping = 0.01;

@@ -4,7 +4,7 @@
 USoftBodyComponent::USoftBodyComponent(const FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
-	TimeRemainder = 0.0;
+	//TimeRemainder = 0.0;
 
 	PrimaryComponentTick.bCanEverTick = true;
 	bTickInEditor = true;
@@ -34,8 +34,15 @@ void USoftBodyComponent::BeginPlay()
 	}
 
 	float step = 1; // zaczepy
-	if(AnchorPoints>1)step = NumWidth / (AnchorPoints-1);
-	for (int i=0; i<AnchorPoints; i++) {
+	int32 ap;
+	if (AnchorPoints > NumWidth) {
+		ap = 2;
+	}
+	else {
+		ap = AnchorPoints;
+	}
+	if(ap>1)step = NumWidth / (ap-1);
+	for (int i=0; i<ap; i++) {
 		if(i==0)SBVertices[int32(step*i)].MassInverse = 0;
 		else SBVertices[int32(step*i-1)].MassInverse = 0;
 	}
@@ -43,7 +50,6 @@ void USoftBodyComponent::BeginPlay()
 	CreateConstrains();
 
 	SetMaterial(0, Material);
-
 	CreateSBMesh();
 }
 
@@ -53,16 +59,24 @@ void USoftBodyComponent::CreateConstrains()
 		for (int i = 0; i < NumWidth-1; i++) {
 
 			int rows = j*NumWidth;
+
 			SBConstraintsStretch.Add(FSBConstraint(i+rows, i+rows+1, GetVertDistance(i+rows, i+rows+1)));
 			SBConstraintsStretch.Add(FSBConstraint(i+rows, i+rows+NumWidth, GetVertDistance(i+rows, i+rows+NumWidth)));
 			SBConstraintsStretch.Add(FSBConstraint(i+rows, i+rows+NumWidth+1, GetVertDistance(i+rows, i+rows+NumWidth+1)));
 			SBConstraintsStretch.Add(FSBConstraint(i+rows+1, i+rows+NumWidth, GetVertDistance(i+rows+1, i+rows+NumWidth)));
-			if(j == NumLength-2)SBConstraintsStretch.Add(FSBConstraint(i+rows+NumWidth, i+rows+NumWidth+1, GetVertDistance(i+rows+NumWidth, i+rows+NumWidth+1)));//koniec poziom
-			
+
+			if (j == NumLength - 2) {
+				SBConstraintsStretch.Add(FSBConstraint(i + rows + NumWidth, i + rows + NumWidth + 1, GetVertDistance(i + rows + NumWidth, i + rows + NumWidth + 1)));//koniec poziom
+			}
 			SBConstraintsBend.Add(FSBConstraint(i + rows, i + rows + NumWidth + 1, i + rows + NumWidth, i + rows + 1, GetTriangleAngle(i + rows, i + rows + NumWidth + 1, i + rows + NumWidth, i + rows + 1)));
 			SBConstraintsBend.Add(FSBConstraint(i + rows + 1, i + rows + NumWidth, i + rows, i + rows + NumWidth + 1, GetTriangleAngle(i + rows + 1, i + rows + NumWidth, i + rows, i + rows + NumWidth + 1)));
-			if (i > 0) SBConstraintsBend.Add(FSBConstraint(i+rows, i+rows+NumWidth, i+rows-1, i+rows+NumWidth+1, GetTriangleAngle(i + rows, i + rows + NumWidth, i + rows - 1, i + rows + NumWidth + 1)));//pion
-			if (j > 0) SBConstraintsBend.Add(FSBConstraint(i+rows, i+rows+1, i+rows+NumWidth+1, i+rows-NumWidth, GetTriangleAngle(i + rows, i + rows + 1, i + rows + NumWidth + 1, i + rows - NumWidth)));//poziom
+
+			if (i > 0) {
+				SBConstraintsBend.Add(FSBConstraint(i + rows, i + rows + NumWidth, i + rows - 1, i + rows + NumWidth + 1, GetTriangleAngle(i + rows, i + rows + NumWidth, i + rows - 1, i + rows + NumWidth + 1)));//pion
+			}
+			if (j > 0) {
+				SBConstraintsBend.Add(FSBConstraint(i + rows, i + rows + 1, i + rows + NumWidth + 1, i + rows - NumWidth, GetTriangleAngle(i + rows, i + rows + 1, i + rows + NumWidth + 1, i + rows - NumWidth)));//poziom
+			}
 		}
 		SBConstraintsStretch.Add(FSBConstraint(j*NumWidth+NumWidth-1, (j+1)*NumWidth+NumWidth-1, GetVertDistance(j*NumWidth+NumWidth-1, (j+1)*NumWidth+NumWidth-1)));//koniec pion
 	}
@@ -72,6 +86,7 @@ void USoftBodyComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
+	if(Testing || Movement)Counter += DeltaTime;
 	if(Movement)Move(DeltaTime);
 
 	if (SBVertices.Num() > 3) // sprawdzenie, czy istnieje wystarczaj¹co wiele wierzcholkow
@@ -84,6 +99,7 @@ void USoftBodyComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 void USoftBodyComponent::UpdateVertices(float DeltaTime)
 {
 	TimeRemainder += DeltaTime;
+
 	while(TimeRemainder>Substep){
 		TimeRemainder -= Substep;
 		PhysicsSubstep(Substep);
@@ -108,15 +124,40 @@ void USoftBodyComponent::PhysicsSubstep(float DeltaTime)
 	for (int i = 0; i < SolverIterations; i++){
 		SolveConstraintStretch();
 		SolveConstraintBend();
-		if(Collision)SolveConstraintColl();
+		if (Collision)SolveConstraintColl();
 	}
 
-	if(Collision)SBConstraintsColl.Empty(); // usuwanie Collision Constraints po ka¿dej iteracji
+	if(Collision)SBConstraintsColl.Empty(); // usuwanie wiezow kolizji po ka¿dej iteracji
 	
 	for (int i = 0; i < SBVertices.Num(); i++){
 		SBVertices[i].Velocity = (SBVertices[i].Estimate - SBVertices[i].Position) / DeltaTime;
 		SBVertices[i].Position = SBVertices[i].Estimate;
 	}
+	////////////////////////// TESTOWANIE ///////////////////
+	if(Testing && !flag){
+		
+		FVector temp = FVector(0.0,0.0,0.0);
+		for(int i = 0; i < SBVertices.Num(); i++){
+			temp += SBVertices[i].Velocity*SBVertices[i].Mass;//badanie zachowania pedu
+		}
+
+		float data = temp.Size();
+
+		FString x = FString::SanitizeFloat(Counter);
+		FString y = FString::SanitizeFloat(data);
+		Lines.Add(FString(x+' '+y));
+		
+		if (Counter > 10.0f) {
+			FString FolderDirectory = "C:/SoftBodyProj/test";
+			FString FullDirectory = "C:/SoftBodyProj/test/Dane.txt";
+
+			WriteDataToFile(FolderDirectory, FullDirectory,Lines);
+			Lines.Empty();
+			flag = true;
+		}
+	}
+	//////////////////////////
+
 }
 
 void USoftBodyComponent::SolveConstraintStretch()
@@ -145,10 +186,10 @@ void USoftBodyComponent::SolveConstraintBend()
 		FSBVertex& P4 = SBVertices[SBConstraintsBend[i].Index[3]];
 
 		double phi0 = SBConstraintsBend[i].Initial;
+
 		FVector p2 = P2.Estimate - P1.Estimate;
 		FVector p3 = P3.Estimate - P1.Estimate;
 		FVector p4 = P4.Estimate - P1.Estimate;
-		float scale = 10*p4.Size();
 
 		FVector n1 = cross(p2, p3) / cross(p2, p3).Size();
 		FVector n2 = cross(p2, p4) / cross(p2, p4).Size();
@@ -156,6 +197,7 @@ void USoftBodyComponent::SolveConstraintBend()
 		double d = FMath::Clamp(dot(n1, n2), -1.0, 1.0);
 		double ang = acos(d);
 		double C = ang - phi0;
+		float scale = 5 * p4.Size();
 
 		FVector q3 = ((cross(p2, n2) + cross(n1, p2)*d) / cross(p2, p3).Size());
 		FVector q4 = ((cross(p2, n1) + cross(n2, p2)*d) / cross(p2, p4).Size());
@@ -230,11 +272,6 @@ float USoftBodyComponent::GetVertDistance(int32 Index1, int32 Index2)
 	return (SBVertices[Index1].Position - SBVertices[Index2].Position).Size();
 }
 
-double USoftBodyComponent::GetTriangleAngleCos(int32 Index1, int32 Index2, int32 Index3, int32 Index4)
-{
-	return dot(PlaneNormal(SBVertices[Index1].Position, SBVertices[Index3].Position, SBVertices[Index2].Position), PlaneNormal(SBVertices[Index1].Position, SBVertices[Index2].Position, SBVertices[Index4].Position));
-}
-
 double USoftBodyComponent::GetTriangleAngle(int32 Index1, int32 Index2, int32 Index3, int32 Index4)
 {
 	float temp = FMath::Clamp(dot(PlaneNormal(SBVertices[Index1].Position, SBVertices[Index3].Position, SBVertices[Index2].Position), PlaneNormal(SBVertices[Index1].Position, SBVertices[Index4].Position, SBVertices[Index2].Position)), -1.0, 1.0);
@@ -258,6 +295,7 @@ FVector USoftBodyComponent::PlaneNormal(FVector P1, FVector P2, FVector P3)
 	FVector V = P3-P1;
 	FVector N = cross(U, V);
 	N.Normalize();
+
 	return N;
 }
 
@@ -281,6 +319,7 @@ void USoftBodyComponent::CreateSBMesh()
 
 	for (int j = 0; j < NumLength - 1; j++) {
 		for (int i = 0; i < NumWidth - 1; i++) {
+
 			MeshTriangles.Add(i + (j*NumWidth));
 			MeshTriangles.Add(i + (j*NumWidth) + 1 + NumWidth);
 			MeshTriangles.Add(i + (j*NumWidth) + 1);
@@ -300,8 +339,6 @@ void USoftBodyComponent::CreateSBMesh()
 
 void USoftBodyComponent::Move(float DeltaTime)
 {
-	Counter += DeltaTime;
-	
 	float delta = 250.0 * DeltaTime;
 	if ((FMath::FloorToInt(Counter) % 12) > 5)delta *= -1;
 	for (int i = 0; i < SBVertices.Num(); i++) {
@@ -310,4 +347,13 @@ void USoftBodyComponent::Move(float DeltaTime)
 			SBVertices[i].Position += FVector(delta, 0.0, 0.0);
 		}
 	}
+}
+
+bool USoftBodyComponent::WriteDataToFile(FString FolderDirectory, FString FullDirectory, TArray<FString>Lines)
+{
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	if (!PlatformFile.DirectoryExists(*FolderDirectory)){
+		PlatformFile.CreateDirectory(*FolderDirectory);
+	}
+	return FFileHelper::SaveStringArrayToFile(Lines, *FullDirectory);
 }

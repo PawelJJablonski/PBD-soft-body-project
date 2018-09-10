@@ -3,6 +3,9 @@
 #include "CoreMinimal.h"
 #include "ProceduralMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "PlatformFilemanager.h"
+#include "GenericPlatformFile.h"
+#include "FileHelper.h"
 #include "SoftBodyComponent.generated.h"
 /**
 *
@@ -91,7 +94,7 @@ public:
 		float UVscale = 4;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0", UIMin = "0", UIMax = "64"))
-		int32 AnchorPoints = 5;
+		int32 AnchorPoints = 2;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody")
 		bool Collision = true;
@@ -120,11 +123,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody") // == PRESENTACJA & TESTOWANIE == //
 		bool Movement = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody") // == PRESENTACJA & TESTOWANIE == //
+		bool Testing = false;
+
 private:
 	void CreateConstrains();
 	void GenerateCollisionConstrains();
 	float GetVertDistance(int32 Index1, int32 Index2);
-	double GetTriangleAngleCos(int32 Index1, int32 Index2, int32 Index3, int32 Index4);
 	double GetTriangleAngle(int32 Index1, int32 Index2, int32 Index3, int32 Index4);
 	double dot(FVector V, FVector W);
 	FVector cross(FVector V, FVector W);
@@ -152,7 +157,7 @@ private:
 	TArray<FProcMeshTangent> MeshTangents;
 	TArray<FLinearColor> MeshVertexColors;
 
-	float TimeRemainder;
+	float TimeRemainder = 0.0;
 
 	////////////////////////////////////
 	// == PRESENTACJA & TESTOWANIE == //
@@ -160,4 +165,9 @@ private:
 
 	float Counter = 0.0;
 	void Move(float DeltaTime);
+
+	int32 SubstepCounter = 0;
+	TArray<FString>Lines;
+	bool flag = false;
+	bool WriteDataToFile(FString directory, FString filename, TArray<FString>Lines);
 };

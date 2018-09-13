@@ -112,10 +112,8 @@ void USoftBodyComponent::PhysicsSubstep(float DeltaTime)
 		if (SBVertices[i].MassInverse > 0){
 			SBVertices[i].Velocity += DeltaTime * (Gravity + ExternalForce);
 			SBVertices[i].Velocity *= 1.0-Damping;
+			SBVertices[i].Estimate = SBVertices[i].Position + DeltaTime * SBVertices[i].Velocity;
 		}
-	}
-
-	for (int i = 0; i < SBVertices.Num(); i++){
 		SBVertices[i].Estimate = SBVertices[i].Position + DeltaTime * SBVertices[i].Velocity;
 	}
 

@@ -166,7 +166,6 @@ private:
 	float Counter = 0.0;
 	void Move(float DeltaTime);
 
-	int32 SubstepCounter = 0;
 	TArray<FString>Lines;
 	bool flag = false;
 	bool WriteDataToFile(FString directory, FString filename, TArray<FString>Lines);

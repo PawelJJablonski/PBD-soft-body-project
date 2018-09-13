@@ -35,7 +35,7 @@ void USoftBodyComponent::BeginPlay()
 
 	float step = 1; // zaczepy
 	int32 ap;
-	if (AnchorPoints > NumWidth) {
+	if (AnchorPoints >= NumWidth*0.5) {
 		ap = 2;
 	}
 	else {

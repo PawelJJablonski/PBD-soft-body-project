@@ -93,7 +93,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (UIMin = "0", UIMax = "1024"))
 		float UVscale = 4;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0", UIMin = "0", UIMax = "64"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody", meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
 		int32 AnchorPoints = 2;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SoftBody")
